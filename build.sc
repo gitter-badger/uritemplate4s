@@ -1,6 +1,7 @@
 // build.sc
 import mill._
 import mill.scalalib._
+import mill.scalalib.publish._
 import mill.scalajslib._
 
 object CommonSettings {
@@ -53,11 +54,24 @@ object CommonSettings {
   )
 }
 
-trait UritemplateModule extends SbtModule {
+trait UritemplateModule extends SbtModule with PublishModule {
 
   def platformSegment: String
 
   def scalaVersion = "2.12.4"
+
+  def publishVersion = "0.0.1-SNAPSHOT"
+
+  def pomSettings = PomSettings(
+    description = "uritemplate4s",
+    organization = "com.lihaoyi",
+    url = "https://github.com/Slakah/uritemplate4s",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("Slakah", "uritemplate4s"),
+    developers = Seq(
+      Developer("Slakah", "James Ross Collier","https://github.com/Slakah")
+    )
+  )
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::fastparse:1.0.0"
