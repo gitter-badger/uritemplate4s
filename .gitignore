@@ -10,3 +10,6 @@ project/plugins/project/
 .history
 .cache
 .lib/
+
+# mill
+out/
