@@ -78,8 +78,8 @@ trait UritemplateModule extends SbtModule with PublishModule {
   )
 
   def sources = T.sources(
-    millSourcePath / platformSegment / "src" / "main",
-    millSourcePath / "shared" / "src" / "main"
+    millSourcePath / platformSegment / "src" / "main" / "scala",
+    millSourcePath / "shared" / "src" / "main" / "scala"
   )
 
   def resources = T.sources(
@@ -103,8 +103,8 @@ trait UritemplateModule extends SbtModule with PublishModule {
     def testFrameworks = Seq("utest.runner.Framework")
 
     def sources = T.sources(
-      millSourcePath / platformSegment / "src" / "test",
-      millSourcePath / "shared" / "src" / "test"
+      millSourcePath / platformSegment / "src" / "test" / "scala",
+      millSourcePath / "shared" / "src" / "test" / "scala"
     )
 
     def resources = T.sources(
