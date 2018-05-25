@@ -7,7 +7,9 @@ lazy val commonSettings = Seq(
   licenses += "MIT" -> url("http://opensource.org/licenses/MIT"),
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.12.4",
-  scalacOptions ++= scalacOpts
+  scalacOptions ++=
+    scalacOpts :+ "-Yrangepos", // needed for scalafix
+  addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "3.7.4" cross CrossVersion.full)
 )
 
 lazy val catsVersion = "1.0.1"
@@ -19,6 +21,7 @@ lazy val utestVersion = "0.6.0"
 
 lazy val docs = project
   .enablePlugins(MicrositesPlugin)
+  .enablePlugins(SiteScaladocPlugin)
   .enablePlugins(ScalaJSPlugin)
   .dependsOn(coreJS)
   .settings(moduleName := "uritemplate4s-docs")
@@ -41,10 +44,16 @@ lazy val docs = project
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .in(file("core"))
+  .jsSettings(
+    // currently sbt-doctest doesn't work in JS builds
+    // https://github.com/tkawachi/sbt-doctest/issues/52
+    doctestGenTests := Seq.empty
+  )
   .settings(
     commonSettings,
     name := "uritemplate4s",
     testFrameworks += new TestFramework("utest.runner.Framework"),
+    doctestTestFramework := DoctestTestFramework.MicroTest,
     libraryDependencies ++= Seq(
       "com.lihaoyi" %%% "fastparse" % fastparseVersion
     ) ++ Seq(
@@ -103,20 +112,20 @@ lazy val scalacOpts = Seq(
   "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
   "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
   "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+//  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
   "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
   "-Ywarn-unused:privates",            // Warn if a private member is unused.
   "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
 )
 
-lazy val micrositeFastOptJS = taskKey[Unit]("Build js, and adds it to a managed js dir")
+lazy val micrositeFullOptJS = taskKey[Unit]("Full build js, and adds it to a managed js dir")
 
 lazy val docsSettings = Seq(
   micrositeName := "uritemplate4s",
   micrositeDescription := "URI template implementation for Scala",
   micrositeBaseUrl := "/uritemplate4s",
-  micrositeDocumentationUrl := "/uritemplate4s",
-  micrositeGithubOwner := "slakah",
+  micrositeDocumentationUrl := "/uritemplate4s/api/latest/uritemplate4s/",
+  micrositeGithubOwner := "Slakah",
   micrositeGithubRepo := "uritemplate4s",
   micrositeExtraMdFiles := Map(
     file("README.md") -> ExtraMdFileConfig(
@@ -131,11 +140,13 @@ lazy val docsSettings = Seq(
     )
   ),
   micrositeGitterChannel := false, // enable when configured
+  micrositePushSiteWith := GitHub4s,
+  micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
   micrositeJsDirectory := (managedResourceDirectories in Compile).value.head / "microsite" / "js",
   (includeFilter in makeSite) := (includeFilter in makeSite).value || "*.js.map",
-  micrositeFastOptJS := {
-    val jsFile = (fastOptJS in Compile).value.data
-    val jsMapFileOpt = (fastOptJS in Compile).value.get(scalaJSSourceMap)
+  micrositeFullOptJS := {
+    val jsFile = (fullOptJS in Compile).value.data
+    val jsMapFileOpt = (fullOptJS in Compile).value.get(scalaJSSourceMap)
     val managedJsDir = (resourceDirectory in Compile).value / "microsite" / "js"
     val targetDir = micrositeJsDirectory.value
     IO.copyFile(jsFile, targetDir / jsFile.name)
@@ -147,14 +158,14 @@ lazy val docsSettings = Seq(
   (mainClass in Compile) := Some("uritemplate4s.demo.Playground"),
   scalaJSUseMainModuleInitializer := true,
   makeMicrosite := Def.sequential(
-    micrositeFastOptJS,
+    micrositeFullOptJS,
     microsite,
     tut,
     micrositeTutExtraMdFiles,
     makeSite,
     micrositeConfig
   ).value
-)
+) ++ SiteScaladocPlugin.scaladocSettings(SiteScaladoc, mappings in (Compile, packageDoc) in coreJVM, "api/latest")
 
 lazy val noPublishSettings = Seq(
   publish := {},
