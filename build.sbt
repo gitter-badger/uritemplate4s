@@ -10,8 +10,16 @@ lazy val commonSettings = Seq(
     s"scm:git@github.com:Slakah/${name.value}.git"
   )),
   version := "0.1.0-SNAPSHOT",
-  scalaVersion := "2.12.4",
-  scalacOptions ++= scalacOpts :+ "-Yrangepos" // needed for scalafix
+  scalaVersion := "2.12.6",
+  crossScalaVersions := Seq("2.11.12", "2.12.6"),
+  scalacOptions ++= scalacOpts :+ "-Yrangepos", // needed for scalafix
+  scalacOptions --= (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 11)) =>
+      Seq("-Xlint:constant", "-Ywarn-extra-implicit",
+          "-Ywarn-unused:implicits", "-Ywarn-unused:imports",
+          "-Ywarn-unused:locals", "-Ywarn-unused:patvars", "-Ywarn-unused:privates")
+    case _ => Seq.empty
+  })
 )
 
 lazy val publishSettings = Seq(
