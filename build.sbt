@@ -19,6 +19,11 @@ lazy val commonSettings = Seq(
           "-Ywarn-unused:implicits", "-Ywarn-unused:imports",
           "-Ywarn-unused:locals", "-Ywarn-unused:patvars", "-Ywarn-unused:privates")
     case _ => Seq.empty
+  }),
+  scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 11)) =>
+      Seq("-Xexperimental")
+    case _ => Seq.empty
   })
 )
 

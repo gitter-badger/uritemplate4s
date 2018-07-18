@@ -35,7 +35,7 @@ jobs:
           key: v1-dependencies-{{ checksum "/tmp/sbt-hash.txt" }}
       - run:
           name: test
-          command: sbt "test"
+          command: sbt "+test"
   publish:
     docker:
       - image: circleci/openjdk:8-jdk-node

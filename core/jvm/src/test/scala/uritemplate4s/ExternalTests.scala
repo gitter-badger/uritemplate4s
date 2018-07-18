@@ -70,7 +70,7 @@ object ExternalTests extends TestSuite {
         case Expected(expectedValue) =>
           assert(result == Right(expectedValue))
         case MultiExpected(possibleValues) =>
-          assert(possibleValues.exists(result.contains))
+          assert(possibleValues.exists(possibleValue => result.toOption.contains(possibleValue)))
         case FailExpected =>
           assertMatch(result) { case Left(_) => }
       }
